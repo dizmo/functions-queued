@@ -126,6 +126,18 @@ npm run cover
 npm run -- cover --no-build
 ```
 
+## Publish
+
+```sh
+npm publish
+```
+
+#### initially (if public):
+
+```sh
+npm publish --access=public
+```
+
 ## Copyright
 
  © 2019 [dizmo AG](http://dizmo.com/), Switzerland
