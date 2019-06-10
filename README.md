@@ -4,9 +4,7 @@
 
 # @dizmo/functions-queued
 
-Provides two functions `queued` and `auto`, where the latter can *also* be accessed via `queued.auto`.
-
-The `queued` function takes as argument another function e.g. `fn`, which is then queued for execution. During its invocation `fn` receives an *extra* argument &ndash; a `next` function &ndash; which needs to be invoked within the body of `fn` to continue processing the queue. It's also possible to enqueue more than one function in one go, by providing more functions as arguments to `queued`.
+Provides two functions `queued` and `auto`, where the latter can *also* be accessed via `queued.auto`. The `queued` function takes as argument another function e.g. `fn`, which is then queued for execution. During its invocation `fn` receives an *extra* argument &ndash; a `next` function &ndash; which needs to be invoked within the body of `fn` to continue processing the queue. It's also possible to enqueue more than one function in one go, by providing more functions as arguments to `queued`.
 
 The `queued` function creates a *separate* queue defined by the *name* of the *first* provided function: This means that if multiple functions e.g. `f1` and `f2` need to be queued together, then they *either* need to be queued in one go, *or* they need to be *wrapped* with functions all with the *same* name (e.g. `fn`). If *only* anonymous functions are provided then the internal queue is named with a random identifier.
 
@@ -66,25 +64,31 @@ qn(1); qn(1, 2); qn(1, 2, 3); qn.next();
 
 ## Development
 
+### Clean
+
+```sh
+npm run clean
+```
+
 ### Build
 
 ```sh
 npm run build
 ```
 
-#### without linting:
+#### without linting and cleaning:
 
 ```sh
-npm run -- build --no-lint
+npm run -- build --no-lint --no-clean
 ```
 
-#### with UMD support (incl. minimization):
+#### with UMD bundling (incl. minimization):
 
 ```sh
 npm run -- build --prepack
 ```
 
-#### with UMD support (excl. minimization):
+#### with UMD bundling (excl. minimization):
 
 ```sh
 npm run -- build --prepack --no-minify
@@ -108,10 +112,10 @@ npm run -- lint --fix
 npm run test
 ```
 
-#### without (re-)building:
+#### without linting, cleaning and (re-)building:
 
 ```sh
-npm run -- test --no-build
+npm run -- test --no-lint --no-clean --no-build
 ```
 
 ### Cover
@@ -120,10 +124,10 @@ npm run -- test --no-build
 npm run cover
 ```
 
-#### without (re-)building:
+#### without linting, cleaning and (re-)building:
 
 ```sh
-npm run -- cover --no-build
+npm run -- cover --no-lint --no-clean --no-build
 ```
 
 ## Publish
