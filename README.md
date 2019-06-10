@@ -21,7 +21,7 @@ npm install @dizmo/functions-queued --save
 ### Require
 
 ```javascript
-const queued = require('@dizmo/functions-queued');
+const { queued } = require('@dizmo/functions-queued');
 ```
 
 ### Examples
