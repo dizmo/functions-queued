@@ -1,7 +1,6 @@
-/* tslint:disable ban-types */
-/* tslint:disable member-ordering */
-/* tslint:disable trailing-comma */
-/* tslint:disable variable-name */
+/* eslint @typescript-eslint/explicit-module-boundary-types: [off] */
+/* eslint prefer-spread: [off] */
+
 import { random } from "@dizmo/functions-random";
 
 export class Queue {

@@ -1,9 +1,5 @@
-/* tslint:disable ban-types */
-/* tslint:disable variable-name */
-/* tslint:disable trailing-comma */
-
 import chai from "chai";
-const should = chai.should();
+chai.should();
 import { queued } from "../lib";
 
 import "mocha";
@@ -98,7 +94,7 @@ describe("queued", () => {
     });
     it("should enqueue w/o deferred next & auto:[false]", () => {
         let n_f4 = 0;
-        const f4 = queued.auto(false)((next: Function) => {
+        const f4 = queued.auto(false)(() => {
             setTimeout(() => {
                 n_f4 += 1; // i.e. *w/o* deferred next()
             }, 50);
