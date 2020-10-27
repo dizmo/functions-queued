@@ -1,5 +1,5 @@
 [![NPM version](https://badge.fury.io/js/%40dizmo%2Ffunctions-queued.svg)](https://npmjs.org/package/@dizmo/functions-queued)
-[![Build Status](https://travis-ci.org/dizmo/functions-queued.svg?branch=master)](https://travis-ci.org/dizmo/functions-queued)
+[![Build Status](https://travis-ci.com/dizmo/functions-queued.svg?branch=master)](https://travis-ci.com/dizmo/functions-queued)
 [![Coverage Status](https://coveralls.io/repos/github/dizmo/functions-queued/badge.svg?branch=master)](https://coveralls.io/github/dizmo/functions-queued?branch=master)
 
 # @dizmo/functions-queued
