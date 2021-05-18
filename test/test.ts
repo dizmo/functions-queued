@@ -234,7 +234,7 @@ describe("queued", () => {
         }, 75);
         setTimeout(() => {
             n_f8.should.equal(2); n_f8a.should.equal(1); n_f8b.should.equal(1);
-        }, 125);
+        }, 120);
         setTimeout(() => {
             n_f8.should.equal(3); n_f8a.should.equal(2); n_f8b.should.equal(1);
         }, 175);
