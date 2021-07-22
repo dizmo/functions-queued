@@ -30,6 +30,7 @@ const { queued } = require('@dizmo/functions-queued');
 import { queued } from '@dizmo/functions-queued';
 ```
 
+#### Dequeue with `next` (and `auto=true`):
 ```typescript
 const fn = queued(function fn(
     n: number, next: Function
@@ -43,6 +44,7 @@ const fn = queued(function fn(
 fn(1); fn(2); fn(3);
 ```
 
+#### Dequeue with `next` (and `auto=false`):
 ```typescript
 const qn = queued.auto(false)(
     (...args: any[]) => {
@@ -54,6 +56,42 @@ const qn = queued.auto(false)(
         const next = args.pop() as Function;
         console.log("[qn/b]", ...args);
         setTimeout(next, 200);
+    }
+);
+```
+
+```typescript
+qn(1); qn(1, 2); qn(1, 2, 3); qn.next();
+```
+
+#### Dequeue with `Promise` (and `auto=true`):
+```typescript
+const fn = queued(function fn(
+    n: number
+) {
+    console.log("[fn]", n);
+    return Promise.resolve(true);
+});
+```
+
+```typescript
+fn(1); fn(2); fn(3);
+```
+
+#### Dequeue with `Promise` (and `auto=false`):
+```typescript
+const qn = queued.auto(false)(
+    (...args: any[]) => {
+        console.log("[qn/a]", ...args);
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(true), 200);
+        });
+    },
+    (...args: any[]) => {
+        console.log("[qn/b]", ...args);
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(true), 200);
+        });
     }
 );
 ```
@@ -150,4 +188,4 @@ npm publish --access=public
 
 ## Copyright
 
- © 2020 [dizmo AG](http://dizmo.com/), Switzerland
+ © 2021 [dizmo AG](http://dizmo.com/), Switzerland

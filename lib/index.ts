@@ -21,8 +21,8 @@ export class Queue {
         this._queue = Queue._q[this._name];
     }
     public enqueue(callback: Function) {
-        this._queue.push(() => {
-            if (callback()) { this.dequeue(); }
+        this._queue.push(async () => {
+            if (await callback()) { this.dequeue(); }
         });
         if (this._auto && !this._running) {
             this.dequeue();
