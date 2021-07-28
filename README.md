@@ -4,9 +4,12 @@
 
 # @dizmo/functions-queued
 
-Provides two functions `queued` and `auto`, where the latter can *also* be accessed via `queued.auto`. The `queued` function takes as argument another function e.g. `fn`, which is then queued for execution. During its invocation `fn` receives an *extra* argument &ndash; a `next` function &ndash; which needs to be invoked within the body of `fn` to continue processing the queue. It's also possible to enqueue more than one function in one go, by providing more functions as arguments to `queued`.
+Provides two functions `queued` and `auto`, where the latter can *also* be accessed via `queued.auto`. The `queued` function takes as argument another function e.g. `fn`, which is then queued for execution. During its invocation `fn` receives an *extra* argument &ndash; a `next` function &ndash; which needs to be invoked within the body of `fn` to continue processing the queue.
+It's also possible to enqueue more than one function in one go, by providing more functions as arguments to `queued`.
 
 The `queued` function creates a *separate* queue defined by the *name* of the *first* provided function: This means that if multiple functions e.g. `f1` and `f2` need to be queued together, then they *either* need to be queued in one go, *or* they need to be *wrapped* with functions all with the *same* name (e.g. `fn`). If *only* anonymous functions are provided then the internal queue is named with a random identifier.
+
+> Functions with the *same* name will be put into the *same* queue, and class methods with the *same* class plus method name will also be put into the *same* queue!
 
 The `auto` function takes a boolean flag and returns then a queue e.g. `qn` (for the provided functions). If the flag is set to `true` then the queue start dequeueing immediately, and otherwise `qn.next` is required to be invoked to trigger dequeueing; by default `queued` starts dequeueing immediately.
 
@@ -24,7 +27,7 @@ npm install @dizmo/functions-queued --save
 const { queued } = require('@dizmo/functions-queued');
 ```
 
-### Examples
+### Examples (functions)
 
 ```typescript
 import { queued } from '@dizmo/functions-queued';
@@ -66,16 +69,16 @@ qn(1); qn(1, 2); qn(1, 2, 3); qn.next();
 
 #### Dequeue with `Promise` (and `auto=true`):
 ```typescript
-const fn = queued(function fn(
+const gn = queued(function gn(
     n: number
 ) {
-    console.log("[fn]", n);
+    console.log("[gn]", n);
     return Promise.resolve(true);
 });
 ```
 
 ```typescript
-fn(1); fn(2); fn(3);
+gn(1); gn(2); gn(3);
 ```
 
 #### Dequeue with `Promise` (and `auto=false`):
@@ -99,6 +102,80 @@ const qn = queued.auto(false)(
 ```typescript
 qn(1); qn(1, 2); qn(1, 2, 3); qn.next();
 ```
+
+### Examples (class methods)
+
+```typescript
+import { queued } from '@dizmo/functions-queued';
+```
+
+#### Dequeue with `next` (and `auto=true`):
+```typescript
+class AClass {
+    @queued.decorator
+    public method(n: number, next?: Function) {
+        console.log("[AClass.method]", n);
+        if (next) setTimeout(next, 200);
+    }
+}
+```
+
+```typescript
+const obj = new MyClass();
+obj.method(1); obj.method(2); obj.method(3);
+```
+
+#### Dequeue with `next` (and `auto=false`):
+```typescript
+class BClass {
+    @queued.decorator(false)
+    public method(n: number, next?: Function) {
+        console.log("[BClass.method]", n);
+        if (next) setTimeout(next, 200);
+    }
+}
+```
+
+```typescript
+const obj = new BClass();
+obj.method(1); obj.method(2); obj.method(3); obj.method.next()
+```
+
+..where in **TypeScript** casting `obj.method` to `any` might be required to access the `next` method.
+
+#### Dequeue with `Promise` (and `auto=true`):
+```typescript
+class CClass {
+    @queued.decorator
+    public method(n: number) {
+        console.log("[CClass.method]", n);
+        return Promise.resolve(true);
+    }
+}
+```
+
+```typescript
+const obj = new CClass();
+obj.method(1); obj.method(2); obj.method(3);
+```
+
+#### Dequeue with `Promise` (and `auto=false`):
+```typescript
+class DClass {
+    @queued.decorator(false)
+    public method(n: number) {
+        console.log("[DClass.method]", n);
+        return Promise.resolve(true);
+    }
+}
+```
+
+```typescript
+const obj = new DClass();
+obj.method(1); obj.method(2); obj.method(3); obj.method.next()
+```
+
+..where in **TypeScript** casting `obj.method` to `any` might be required to access the `next` method.
 
 ## Development
 
