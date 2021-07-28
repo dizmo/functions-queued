@@ -73,7 +73,7 @@ const gn = queued(function gn(
     n: number
 ) {
     console.log("[gn]", n);
-    return Promise.resolve(true);
+    return Promise.resolve();
 });
 ```
 
@@ -87,13 +87,13 @@ const qn = queued.auto(false)(
     (...args: any[]) => {
         console.log("[qn/a]", ...args);
         return new Promise((resolve) => {
-            setTimeout(() => resolve(true), 200);
+            setTimeout(() => resolve(), 200);
         });
     },
     (...args: any[]) => {
         console.log("[qn/b]", ...args);
         return new Promise((resolve) => {
-            setTimeout(() => resolve(true), 200);
+            setTimeout(() => resolve(), 200);
         });
     }
 );
@@ -149,7 +149,7 @@ class CClass {
     @queued.decorator
     public method(n: number) {
         console.log("[CClass.method]", n);
-        return Promise.resolve(true);
+        return Promise.resolve();
     }
 }
 ```
@@ -165,7 +165,7 @@ class DClass {
     @queued.decorator(false)
     public method(n: number) {
         console.log("[DClass.method]", n);
-        return Promise.resolve(true);
+        return Promise.resolve();
     }
 }
 ```
