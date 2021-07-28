@@ -61,16 +61,16 @@ export const auto = (flag: boolean) => (
     const q = new Queue({
         auto: flag, name: fn.name
     });
-    const qn = function (
+    const qn = async function (
         this: any, ...args: any[]
     ) {
-        q.enqueue(() => fn.apply(this, args.concat([
+        await q.enqueue(() => fn.apply(this, args.concat([
             async () => await q.dequeue()
         ])), {
             name: this?.constructor?.name
         });
         for (const fi of functions) {
-            q.enqueue(() => fi.apply(this, args.concat([
+            await q.enqueue(() => fi.apply(this, args.concat([
                 async () => await q.dequeue()
             ])), {
                 name: this?.constructor?.name
