@@ -15,16 +15,15 @@ describe("queued", () => {
 describe("queued", () => {
     it("should enqueue w/a deferred next & auto:[true]", (done) => {
         let n_f0 = 0;
-        const f0 = queued(
-            (number: number, next: Function) => {
-                number.should.be.a("number");
-                next.should.be.a("function");
-                setTimeout(() => {
-                    n_f0 += number;
-                    next(); // i.e. *deferred* next()
-                }, 50);
-            }
-        );
+        const f0 = queued((
+            number: number, next: Function
+        ) => {
+            number.should.be.a("number");
+            next.should.be.a("function");
+            setTimeout(() => {
+                n_f0 += number; next(); // i.e. *deferred* next
+            }, 50);
+        });
         {
             f0(1); f0(1); f0(1);
         }
@@ -32,22 +31,24 @@ describe("queued", () => {
     });
     it("should enqueue w/a deferred next & auto:[true] w/2 functions", (done) => {
         let n_f1 = 0;
-        const f1 = queued.auto(true)(
-            (next: Function) => {
-                next.should.be.a("function");
-                setTimeout(() => {
-                    n_f1 += 1; next(); // i.e. *deferred* next()
-                }, 25);
-            },
-            (next: Function) => {
-                next.should.be.a("function");
-                setTimeout(() => {
-                    n_f1 += 1; next(); // i.e. *deferred* next()
-                }, 25);
-            }
-        );
+        const f1a = queued.auto(true)(function f1(
+            next: Function
+        ) {
+            next.should.be.a("function");
+            setTimeout(() => {
+                n_f1 += 1; next(); // i.e. *deferred* next
+            }, 25);
+        });
+        const f1b = queued.auto(true)(function f1(
+            next: Function
+        ) {
+            next.should.be.a("function");
+            setTimeout(() => {
+                n_f1 += 1; next(); // i.e. *deferred* next
+            }, 25);
+        });
         {
-            f1(); f1(); f1();
+            f1a(); f1b(); f1a(); f1b(); f1a(); f1b();
         }
         setTimeout(() => n_f1.should.equal(6) && done(), 250);
     });
@@ -56,7 +57,7 @@ describe("queued", () => {
         const f2 = queued.auto(false)((next: Function) => {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f2 += 1; next(); // i.e. *deferred* next()
+                n_f2 += 1; next(); // i.e. *deferred* next
             }, 50);
         });
         {
@@ -71,9 +72,9 @@ describe("queued", () => {
         const f3 = queued.auto(true)((next: Function) => {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f3 += 1; // i.e. *w/o* deferred next()
+                n_f3 += 1; // i.e. *w/o* deferred next
             }, 50);
-            return true; // i.e. *immediate* next()
+            return true; // i.e. *immediate* next
         });
         {
             f3(); f3(); f3();
@@ -86,9 +87,9 @@ describe("queued", () => {
         let n_f4 = 0;
         const f4 = queued.auto(false)(() => {
             setTimeout(() => {
-                n_f4 += 1; // i.e. *w/o* deferred next()
+                n_f4 += 1; // i.e. *w/o* deferred next
             }, 50);
-            return true; // i.e. *immediate* next()
+            return true; // i.e. *immediate* next
         });
         {
             f4(); f4(); f4(); f4.next();
@@ -103,16 +104,20 @@ describe("queued", () => {
         let n_f5 = 0;
         let n_f5a = 0;
         let n_f5b = 0;
-        const f5a = queued.auto(false)(function f5(next: Function) {
+        const f5a = queued.auto(false)(function f5(
+            next: Function
+        ) {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f5 += 1; n_f5a += 1; next(); // i.e. *deferred* next()
+                n_f5 += 1; n_f5a += 1; next(); // i.e. *deferred* next
             }, 50);
         });
-        const f5b = queued.auto(false)(function f5(next: Function) {
+        const f5b = queued.auto(false)(function f5(
+            next: Function
+        ) {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f5 += 1; n_f5b += 1; next(); // i.e. *deferred* next()
+                n_f5 += 1; n_f5b += 1; next(); // i.e. *deferred* next
             }, 50);
         });
         {
@@ -129,16 +134,20 @@ describe("queued", () => {
         let n_f6 = 0;
         let n_f6a = 0;
         let n_f6b = 0;
-        const f6a = queued.auto(false)(function f6(next: Function) {
+        const f6a = queued.auto(false)(function f6(
+            next: Function
+        ) {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f6 += 1; n_f6a += 1; next(); // i.e. *deferred* next()
+                n_f6 += 1; n_f6a += 1; next(); // i.e. *deferred* next
             }, 50);
         });
-        const f6b = queued.auto(false)(function f6(next: Function) {
+        const f6b = queued.auto(false)(function f6(
+            next: Function
+        ) {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f6 += 1; n_f6b += 1; next(); // i.e. *deferred* next()
+                n_f6 += 1; n_f6b += 1; next(); // i.e. *deferred* next
             }, 50);
         });
         {
@@ -155,16 +164,20 @@ describe("queued", () => {
         let n_f7 = 0;
         let n_f7a = 0;
         let n_f7b = 0;
-        const f7a = queued.auto(false)(function f7(next: Function) {
+        const f7a = queued.auto(false)(function f7(
+            next: Function
+        ) {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f7 += 1; n_f7a += 1; next(); // i.e. *deferred* next()
+                n_f7 += 1; n_f7a += 1; next(); // i.e. *deferred* next
             }, 50);
         });
-        const f7b = queued.auto(true)(function f7(next: Function) {
+        const f7b = queued.auto(true)(function f7(
+            next: Function
+        ) {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f7 += 1; n_f7b += 1; next(); // i.e. *deferred* next()
+                n_f7 += 1; n_f7b += 1; next(); // i.e. *deferred* next
             }, 50);
         });
         {
@@ -181,16 +194,20 @@ describe("queued", () => {
         let n_f8 = 0;
         let n_f8a = 0;
         let n_f8b = 0;
-        const f8a = queued.auto(true)(function f8(next: Function) {
+        const f8a = queued.auto(true)(function f8(
+            next: Function
+        ) {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f8 += 1; n_f8a += 1; next(); // i.e. *deferred* next()
+                n_f8 += 1; n_f8a += 1; next(); // i.e. *deferred* next
             }, 50);
         });
-        const f8b = queued.auto(false)(function f8(next: Function) {
+        const f8b = queued.auto(false)(function f8(
+            next: Function
+        ) {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f8 += 1; n_f8b += 1; next(); // i.e. *deferred* next()
+                n_f8 += 1; n_f8b += 1; next(); // i.e. *deferred* next
             }, 50);
         });
         {
@@ -207,16 +224,20 @@ describe("queued", () => {
         let n_f9 = 0;
         let n_f9a = 0;
         let n_f9b = 0;
-        const f9a = queued.auto(true)(function f9(next: Function) {
+        const f9a = queued.auto(true)(function f9(
+            next: Function
+        ) {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f9 += 1; n_f9a += 1; next(); // i.e. *deferred* next()
+                n_f9 += 1; n_f9a += 1; next(); // i.e. *deferred* next
             }, 50);
         });
-        const f9b = queued.auto(true)(function f9(next: Function) {
+        const f9b = queued.auto(true)(function f9(
+            next: Function
+        ) {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f9 += 1; n_f9b += 1; next(); // i.e. *deferred* next()
+                n_f9 += 1; n_f9b += 1; next(); // i.e. *deferred* next
             }, 50);
         });
         {
@@ -233,18 +254,18 @@ describe("queued", () => {
 describe("queued", () => {
     it("should enqueue w/a deferred promise & auto:[true]", (done) => {
         let n_f0 = 0;
-        const f0 = queued(
-            (number: number, next: Function) => {
-                number.should.be.a("number");
-                next.should.be.a("function");
-                return new Promise<void>((resolve) => {
-                    setTimeout(() => {
-                        n_f0 += number;
-                        resolve(); // i.e. *deferred* resolve()
-                    }, 50);
-                });
-            }
-        );
+        const f0 = queued((
+            number: number, next: Function
+        ) => {
+            number.should.be.a("number");
+            next.should.be.a("function");
+            return new Promise<boolean>((resolve) => {
+                setTimeout(() => {
+                    n_f0 += number;
+                    resolve(true); // i.e. *deferred* resolve()
+                }, 50);
+            });
+        });
         {
             f0(1); f0(1); f0(1);
         }
@@ -252,36 +273,40 @@ describe("queued", () => {
     });
     it("should enqueue w/a deferred promise & auto:[true] w/2 functions", (done) => {
         let n_f1 = 0;
-        const f1 = queued.auto(true)(
-            (next: Function) => {
-                next.should.be.a("function");
-                return new Promise<void>((resolve) => {
-                    setTimeout(() => {
-                        n_f1 += 1; resolve(); // i.e. *deferred* resolve()
-                    }, 25);
-                });
-            },
-            (next: Function) => {
-                next.should.be.a("function");
-                return new Promise<void>((resolve) => {
-                    setTimeout(() => {
-                        n_f1 += 1; resolve(); // i.e. *deferred* resolve()
-                    }, 25);
-                });
-            }
-        );
+        const f1a = queued.auto(true)(function f1(
+            next: Function
+        ) {
+            next.should.be.a("function");
+            return new Promise<boolean>((resolve) => {
+                setTimeout(() => {
+                    n_f1 += 1; resolve(true); // i.e. *deferred* resolve()
+                }, 25);
+            });
+        });
+        const f1b = queued.auto(true)(function f1 (
+            next: Function
+        ) {
+            next.should.be.a("function");
+            return new Promise<boolean>((resolve) => {
+                setTimeout(() => {
+                    n_f1 += 1; resolve(true); // i.e. *deferred* resolve()
+                }, 25);
+            });
+        });
         {
-            f1(); f1(); f1();
+            f1a(); f1b(); f1a(); f1b(); f1a(); f1b();
         }
         setTimeout(() => n_f1.should.equal(6) && done(), 250);
     });
     it("should enqueue w/a deferred promise & auto:[false]", (done) => {
         let n_f2 = 0;
-        const f2 = queued.auto(false)((next: Function) => {
+        const f2 = queued.auto(false)((
+            next: Function
+        ) => {
             next.should.be.a("function");
-            return new Promise<void>((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 setTimeout(() => {
-                    n_f2 += 1; resolve(); // i.e. *deferred* resolve()
+                    n_f2 += 1; resolve(true); // i.e. *deferred* resolve()
                 }, 50);
             });
         });
@@ -294,12 +319,14 @@ describe("queued", () => {
 describe("queued", () => {
     it("should enqueue w/o deferred promise & auto:[true]", (done) => {
         let n_f3 = 0;
-        const f3 = queued.auto(true)((next: Function) => {
+        const f3 = queued.auto(true)((
+            next: Function
+        ) => {
             next.should.be.a("function");
             setTimeout(() => {
-                n_f3 += 1; // i.e. *w/o* deferred next()
+                n_f3 += 1; // i.e. *w/o* deferred next
             }, 50);
-            return Promise.resolve(); // i.e. *immediate* resolve()
+            return Promise.resolve(true); // i.e. *immediate* resolve()
         });
         {
             f3(); f3(); f3();
@@ -312,9 +339,9 @@ describe("queued", () => {
         let n_f4 = 0;
         const f4 = queued.auto(false)(() => {
             setTimeout(() => {
-                n_f4 += 1; // i.e. *w/o* deferred next()
+                n_f4 += 1; // i.e. *w/o* deferred next
             }, 50);
-            return Promise.resolve(); // i.e. *immediate* resolve()
+            return Promise.resolve(true); // i.e. *immediate* resolve()
         });
         {
             f4(); f4(); f4(); f4.next();
@@ -324,25 +351,28 @@ describe("queued", () => {
         setTimeout(() => n_f4.should.equal(3) && done(), 250);
     });
 });
-
 describe("queued", () => {
     it("should named enqueue:f5 w/a deferred promise & auto:[false]", (done) => {
         let n_f5 = 0;
         let n_f5a = 0;
         let n_f5b = 0;
-        const f5a = queued.auto(false)(function f5(next: Function) {
+        const f5a = queued.auto(false)(function f5(
+            next: Function
+        ) {
             next.should.be.a("function");
-            return new Promise<void>((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 setTimeout(() => {
-                    n_f5 += 1; n_f5a += 1; resolve(); // i.e. *deferred* resolve()
+                    n_f5 += 1; n_f5a += 1; resolve(true); // i.e. *deferred* resolve()
                 }, 50);
             });
         });
-        const f5b = queued.auto(false)(function f5(next: Function) {
+        const f5b = queued.auto(false)(function f5(
+            next: Function
+        ) {
             next.should.be.a("function");
-            return new Promise<void>((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 setTimeout(() => {
-                    n_f5 += 1; n_f5b += 1; resolve(); // i.e. *deferred* resolve()
+                    n_f5 += 1; n_f5b += 1; resolve(true); // i.e. *deferred* resolve()
                 }, 50);
             });
         });
@@ -360,19 +390,23 @@ describe("queued", () => {
         let n_f6 = 0;
         let n_f6a = 0;
         let n_f6b = 0;
-        const f6a = queued.auto(false)(function f6(next: Function) {
+        const f6a = queued.auto(false)(function f6(
+            next: Function
+        ) {
             next.should.be.a("function");
-            return new Promise<void>((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 setTimeout(() => {
-                    n_f6 += 1; n_f6a += 1; resolve(); // i.e. *deferred* resolve()
+                    n_f6 += 1; n_f6a += 1; resolve(true); // i.e. *deferred* resolve()
                 }, 50);
             });
         });
-        const f6b = queued.auto(false)(function f6(next: Function) {
+        const f6b = queued.auto(false)(function f6(
+            next: Function
+        ) {
             next.should.be.a("function");
-            return new Promise<void>((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 setTimeout(() => {
-                    n_f6 += 1; n_f6b += 1; resolve(); // i.e. *deferred* resolve()
+                    n_f6 += 1; n_f6b += 1; resolve(true); // i.e. *deferred* resolve()
                 }, 50);
             });
         });
@@ -390,19 +424,23 @@ describe("queued", () => {
         let n_f7 = 0;
         let n_f7a = 0;
         let n_f7b = 0;
-        const f7a = queued.auto(false)(function f7(next: Function) {
+        const f7a = queued.auto(false)(function f7(
+            next: Function
+        ) {
             next.should.be.a("function");
-            return new Promise<void>((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 setTimeout(() => {
-                    n_f7 += 1; n_f7a += 1; resolve(); // i.e. *deferred* resolve()
+                    n_f7 += 1; n_f7a += 1; resolve(true); // i.e. *deferred* resolve()
                 }, 50);
             });
         });
-        const f7b = queued.auto(true)(function f7(next: Function) {
+        const f7b = queued.auto(true)(function f7(
+            next: Function
+        ) {
             next.should.be.a("function");
-            return new Promise<void>((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 setTimeout(() => {
-                    n_f7 += 1; n_f7b += 1; resolve(); // i.e. *deferred* resolve()
+                    n_f7 += 1; n_f7b += 1; resolve(true); // i.e. *deferred* resolve()
                 }, 50);
             });
         });
@@ -420,19 +458,23 @@ describe("queued", () => {
         let n_f8 = 0;
         let n_f8a = 0;
         let n_f8b = 0;
-        const f8a = queued.auto(true)(function f8(next: Function) {
+        const f8a = queued.auto(true)(function f8(
+            next: Function
+        ) {
             next.should.be.a("function");
-            return new Promise<void>((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 setTimeout(() => {
-                    n_f8 += 1; n_f8a += 1; resolve(); // i.e. *deferred* resolve()
+                    n_f8 += 1; n_f8a += 1; resolve(true); // i.e. *deferred* resolve()
                 }, 50);
             });
         });
-        const f8b = queued.auto(false)(function f8(next: Function) {
+        const f8b = queued.auto(false)(function f8(
+            next: Function
+        ) {
             next.should.be.a("function");
-            return new Promise<void>((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 setTimeout(() => {
-                    n_f8 += 1; n_f8b += 1; resolve(); // i.e. *deferred* resolve()
+                    n_f8 += 1; n_f8b += 1; resolve(true); // i.e. *deferred* resolve()
                 }, 50);
             });
         });
@@ -450,19 +492,23 @@ describe("queued", () => {
         let n_f9 = 0;
         let n_f9a = 0;
         let n_f9b = 0;
-        const f9a = queued.auto(true)(function f9(next: Function) {
+        const f9a = queued.auto(true)(function f9(
+            next: Function
+        ) {
             next.should.be.a("function");
-            return new Promise<void>((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 setTimeout(() => {
-                    n_f9 += 1; n_f9a += 1; resolve(); // i.e. *deferred* resolve()
+                    n_f9 += 1; n_f9a += 1; resolve(true); // i.e. *deferred* resolve()
                 }, 50);
             });
         });
-        const f9b = queued.auto(true)(function f9(next: Function) {
+        const f9b = queued.auto(true)(function f9(
+            next: Function
+        ) {
             next.should.be.a("function");
-            return new Promise<void>((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 setTimeout(() => {
-                    n_f9 += 1; n_f9b += 1; resolve(); // i.e. *deferred* resolve()
+                    n_f9 += 1; n_f9b += 1; resolve(true); // i.e. *deferred* resolve()
                 }, 50);
             });
         });
@@ -554,10 +600,10 @@ describe("queued", () => {
                 delta: number
             ) {
                 delta.should.be.a("number");
-                return new Promise<void>((resolve) => {
+                return new Promise<boolean>((resolve) => {
                     setTimeout(() => {
                         this.n += delta;
-                        resolve();
+                        resolve(true);
                     }, 50);
                 })
             }
@@ -577,10 +623,10 @@ describe("queued", () => {
                 delta: number
             ) {
                 delta.should.be.a("number");
-                return new Promise<void>((resolve) => {
+                return new Promise<boolean>((resolve) => {
                     setTimeout(() => {
                         this.n += delta;
-                        resolve();
+                        resolve(true);
                     }, 50);
                 })
             }
@@ -600,10 +646,10 @@ describe("queued", () => {
                 delta: number
             ) {
                 delta.should.be.a("number");
-                return new Promise<void>((resolve) => {
+                return new Promise<boolean>((resolve) => {
                     setTimeout(() => {
                         this.n += delta;
-                        resolve();
+                        resolve(true);
                     }, 50);
                 });
             }

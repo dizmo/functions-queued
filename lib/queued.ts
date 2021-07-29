@@ -32,8 +32,9 @@ export class Queue {
             this._queue = Queue._q[name];
         }
         this._queue.push(async () => {
-            await callback();
-            await this.dequeue();
+            if (await callback()) {
+                await this.dequeue();
+            }
         });
         if (this._auto && !this._running) {
             await this.dequeue();
@@ -56,7 +57,7 @@ export class Queue {
     private static _q: { [key: string]: Function[] } = {};
 }
 export const auto = (flag: boolean) => (
-    fn: Function, ...functions: Function[]
+    fn: Function
 ) => {
     const q = new Queue({
         auto: flag, name: fn.name
@@ -64,18 +65,11 @@ export const auto = (flag: boolean) => (
     const qn = async function (
         this: any, ...args: any[]
     ) {
-        await q.enqueue(() => fn.apply(this, args.concat([
+        return await q.enqueue(() => fn.apply(this, args.concat([
             async () => await q.dequeue()
         ])), {
             name: this?.constructor?.name
         });
-        for (const fi of functions) {
-            await q.enqueue(() => fi.apply(this, args.concat([
-                async () => await q.dequeue()
-            ])), {
-                name: this?.constructor?.name
-            });
-        }
     };
     qn.next = async () => {
         await q.dequeue();
@@ -83,9 +77,9 @@ export const auto = (flag: boolean) => (
     return qn;
 };
 export const queued = (
-    fn: Function, ...functions: Function[]
+    fn: Function
 ) => {
-    return auto(true)(fn, ...functions);
+    return auto(true)(fn);
 };
 queued.auto = auto;
 export default queued;
