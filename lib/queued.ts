@@ -2,13 +2,14 @@
 /* eslint prefer-spread: [off] */
 
 import { random } from "@dizmo/functions-random";
+declare type Promisor<T = any> = (...args: any[]) => Promise<T>;
 
 /**
  * The Queue returns a queue *per* (optional) class name and (optional) function
  * name i.e. two or more different functions with the **same** (class plus) name
  * will be part of the **same** queue!
  */
-export class Queue {
+export class Queue<T> {
     public constructor(options: {
         auto?: boolean, name?: string // function name (if any)
     }) {
@@ -18,68 +19,81 @@ export class Queue {
         this._auto = options.auto ?? true;
         this._name = options.name ?? '';
     }
-    public async enqueue(callback: Function, options: {
+    public enqueue(callback: Promisor<T>, options: {
         name?: string // class name (if any)
     }) {
         if (this._queue === undefined) {
             const name = options.name && this._name
-                ? `${options.name}.${this._name}`
-                : this._name ? `${this._name}`
-                : random(8);
+                ? `${options.name}.${this._name}` : this._name
+                ? `${this._name}` : random(8);
             if (Queue._q[name] === undefined) {
                 Queue._q[name] = [];
             }
             this._queue = Queue._q[name];
         }
-        this._queue.push(async () => {
-            if (await callback()) {
-                await this.dequeue();
+        return new Promise<T>((resolve) => {
+            this._queue?.push(async () => {
+                const result = await callback();
+                if (result) this.dequeue();
+                return result;
+            });
+            if (this._auto && !this._running) {
+                const result = this.dequeue();
+                if (result) resolve(result);
             }
         });
-        if (this._auto && !this._running) {
-            await this.dequeue();
-        }
-        return this;
     }
-    public async dequeue() {
+    public dequeue() {
         this._running = false;
         const shift = this._queue?.shift();
         if (shift) {
             this._running = true;
-            await shift();
+            return shift();
         }
-        return shift;
     }
     private _name = '';
     private _auto = false;
     private _running = false;
-    private _queue?: Function[];
-    private static _q: { [key: string]: Function[] } = {};
+    private _queue?: Promisor<T>[];
+    private static _q: {
+        [key: string]: Promisor[]
+    } = {};
 }
-export const auto = (flag: boolean) => (
+export const auto = <T>(flag: boolean) => (
     fn: Function
 ) => {
-    const q = new Queue({
+    const queue = new Queue<T>({
         auto: flag, name: fn.name
     });
-    const qn = async function (
+    const queuer = function (
         this: any, ...args: any[]
     ) {
-        return await q.enqueue(() => fn.apply(this, args.concat([
-            async () => await q.dequeue()
-        ])), {
+        const wrapped = () => new Promise<T>((resolve) => {
+            const result = fn.apply(
+                this, args.concat([(arg_result: T) => {
+                    if (arg_result) {
+                        resolve(arg_result);
+                    }
+                    queue.dequeue();
+                }])
+            );
+            if (result) {
+                resolve(result);
+            }
+        });
+        return queue.enqueue(wrapped, {
             name: this?.constructor?.name
         });
     };
-    qn.next = async () => {
-        await q.dequeue();
+    queuer.next = () => {
+        return queue.dequeue();
     };
-    return qn;
+    return queuer;
 };
-export const queued = (
+export const queued = <T>(
     fn: Function
 ) => {
-    return auto(true)(fn);
+    return auto<T>(true)(fn);
 };
 queued.auto = auto;
 export default queued;
