@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/explicit-module-boundary-types: [off] */
 /* eslint prefer-spread: [off] */
 
-import { random } from "@dizmo/functions-random";
+import { random } from '@dizmo/functions-random';
 declare type Promisor<T = any> = (...args: any[]) => Promise<T>;
 
 /**
@@ -10,14 +10,23 @@ declare type Promisor<T = any> = (...args: any[]) => Promise<T>;
  * will be part of the **same** queue!
  */
 export class Queue<T> {
-    public constructor(options: {
-        auto?: boolean, name?: string // function name (if any)
+    public constructor(options?: {
+        auto?: boolean, name?: string, // function name (if any)
+        sync?: boolean, lock?: {
+            aquire: () => Promise<boolean>,
+            release: () => Promise<boolean>
+        }
     }) {
         if (options === undefined) {
             options = {};
         }
+        this._sync = options.sync ?? true;
         this._auto = options.auto ?? true;
         this._name = options.name ?? '';
+        this._lock = options.lock ?? {
+            aquire: () => Promise.resolve(true),
+            release: () => Promise.resolve(true)
+        }
     }
     public enqueue(callback: Promisor<T>, options: {
         name?: string // class name (if any)
@@ -34,36 +43,73 @@ export class Queue<T> {
         return new Promise<T>((resolve) => {
             this._queue?.push(async () => {
                 const result = await callback();
-                if (result) this.dequeue();
+                if (result) {
+                    if (this._sync) {
+                        await this.dequeue();
+                    } else {
+                        this.dequeue();
+                    }
+                }
                 return result;
             });
             if (this._auto && !this._running) {
-                const result = this.dequeue();
-                if (result) resolve(result);
+                this.dequeue().then((result) => {
+                    if (result) resolve(result);
+                });
             }
         });
     }
-    public dequeue() {
-        this._running = false;
-        const shift = this._queue?.shift();
-        if (shift) {
+    public async dequeue(): Promise<T | undefined> {
+        const head = this._queue?.shift();
+        if (head) {
             this._running = true;
-            return shift();
+        } else {
+            this._running = false;
+        }
+        if (head) {
+            if (await this._lock.aquire()) {
+                const result = await head();
+                await this._lock.release();
+                return result;
+            }
+            this._running = false;
+            class QueueError extends Error {}
+            throw new QueueError('too busy');
         }
     }
     private _name = '';
+    private _sync = true;
     private _auto = false;
     private _running = false;
+    private _lock: {
+        aquire: () => Promise<boolean>,
+        release: () => Promise<boolean>
+    }
     private _queue?: Promisor<T>[];
     private static _q: {
         [key: string]: Promisor[]
     } = {};
 }
-export const auto = <T>(flag: boolean) => (
-    fn: Function
+/**
+ * Wrap the provided function into a queue where the queue is determined by the
+ * name of the function (`fn.name`); dequeueing starts based on the given flag,
+ * i.e. whether the latter has value of `true` or `false` -- on each invocation
+ * of the wrapped function.
+ *
+ * @param fn function to enqueue
+ * @param options modify dequeueing
+ * @returns a queue for the enqueued
+ */
+ export const auto = <T>(flag: boolean) => (
+    fn: Function, options?: {
+        sync?: boolean, lock?: {
+            aquire: () => Promise<boolean>,
+            release: () => Promise<boolean>
+        }
+    }
 ) => {
     const queue = new Queue<T>({
-        auto: flag, name: fn.name
+        auto: flag, name: fn.name, ...options
     });
     const queuer = function (
         this: any, ...args: any[]
@@ -90,10 +136,24 @@ export const auto = <T>(flag: boolean) => (
     };
     return queuer;
 };
+/**
+ * Wrap the provided function into a queue where the queue is determined by the
+ * name of the function (`fn.name`); dequeueing starts automatically -- on each
+ * invocation of the wrapped function.
+ *
+ * @param fn function to enqueue
+ * @param options modify dequeueing
+ * @returns a queue for the enqueued
+ */
 export const queued = <T>(
-    fn: Function
+    fn: Function, options?: {
+        sync?: boolean, lock?: {
+            aquire: () => Promise<boolean>,
+            release: () => Promise<boolean>
+        }
+    }
 ) => {
-    return auto<T>(true)(fn);
+    return auto<T>(true)(fn, options);
 };
 queued.auto = auto;
 export default queued;

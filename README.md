@@ -12,7 +12,11 @@ The `queued` function creates a *separate* queue defined by the *name* of the pr
 
 The `auto` function takes a boolean flag and returns then a queue e.g. `qn` (for the provided function). If the flag is set to `true` then the queue start dequeueing immediately, and otherwise `qn.next` is required to be invoked to trigger dequeueing; by default `queued` starts dequeueing immediately.
 
+Both the `queued` and `auto` functions accepts options, which enable dequeueing (a)synchronously and also support a mechanism to aquire and release (global) locks. By default dequeueing is performed synchronously without the usage of a lock.
+
 Further, by using a `@queued.decorator`, class methods can be decorated to turn them into queues, where the same naming rules as explained above apply. However, each method name is prepended with the corresponding class name; i.e. two methods with the same name but from to differently named classes will be put into to different queues.
+
+Instead of using the provided `next` function to continue dequeueing, the wrapped function can also return a promise for a truthy value. Also, the returned value can be accessed upon awaiting the promise returned by the invocation of the wrapped function.
 
 ## Usage
 
@@ -44,7 +48,7 @@ const fn = queued(function fn(
 ```
 
 ```typescript
-fn(1); fn(2); fn(3);
+fn(1); fn(2); const result = await fn(3);
 ```
 
 #### Dequeue with `next` (and `auto=false`):
@@ -71,7 +75,7 @@ const gn = queued(function gn(
 ```
 
 ```typescript
-gn(1); gn(2); gn(3);
+gn(1); gn(2); const result = await gn(3);
 ```
 
 #### Dequeue with `Promise` (and `auto=false`):
@@ -82,6 +86,52 @@ const qn = queued.auto(false)((
     return new Promise((resolve) => {
         setTimeout(() => resolve(true), 200);
     });
+});
+```
+
+```typescript
+qn(1); qn(1, 2); qn(1, 2, 3); qn.next();
+```
+
+### Examples (functions) with locking
+
+#### Dequeue with `next` (and `auto=true`) plus a lock:
+```typescript
+const fn = queued(function fn(
+    n: number, next: Function
+) {
+    setTimeout(next, 200);
+}, {
+    sync: true, // dequeue synchronously [default]
+    lock: {
+        // aquire (pseudo) lock [default]
+        aquire: () => Promise.resolve(true),
+        // release (pseudo) lock [default]
+        release: () => Promise.resolve(true)
+    }
+});
+```
+
+```typescript
+fn(1); fn(2); const result = await fn(3);
+```
+
+#### Dequeue with `Promise` (and `auto=false`) plus a lock:
+```typescript
+const qn = queued.auto(false)((
+    ...args: any[]
+) => {
+    return new Promise((resolve) => {
+        setTimeout(() => resolve(true), 200);
+    });
+}, {
+    sync: false, // dequeue asynchronously [*not* default]
+    lock: {
+        // aquire (pseudo) lock [default]
+        aquire: () => Promise.resolve(true),
+        // release (pseudo) lock [default]
+        release: () => Promise.resolve(true)
+    }
 });
 ```
 
@@ -112,7 +162,7 @@ const obj = new AClass();
 ```
 
 ```typescript
-obj.method(1); obj.method(2); obj.method(3);
+obj.method(1); obj.method(2); const result = await obj.method(3);
 ```
 
 #### Dequeue with `next` (and `auto=false`):
@@ -154,7 +204,7 @@ const obj = new CClass();
 ```
 
 ```typescript
-obj.method(1); obj.method(2); obj.method(3);
+obj.method(1); obj.method(2); const result = await obj.method(3);
 ```
 
 #### Dequeue with `Promise` (and `auto=false`):
