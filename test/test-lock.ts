@@ -24,7 +24,7 @@ describe("queued", () => {
         }, {
             sync: true,
             lock: {
-                aquire: () => Promise.resolve(true),
+                acquire: () => Promise.resolve(true),
                 release: () => Promise.resolve(true)
             }
         });
@@ -48,7 +48,7 @@ describe("queued", () => {
         }, {
             sync: false,
             lock: {
-                aquire: () => Promise.resolve(true),
+                acquire: () => Promise.resolve(true),
                 release: () => Promise.resolve(true)
             }
         });

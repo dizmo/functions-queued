@@ -12,7 +12,7 @@ The `queued` function creates a *separate* queue defined by the *name* of the pr
 
 The `auto` function takes a boolean flag and returns then a queue e.g. `qn` (for the provided function). If the flag is set to `true` then the queue start dequeueing immediately, and otherwise `qn.next` is required to be invoked to trigger dequeueing; by default `queued` starts dequeueing immediately.
 
-Both the `queued` and `auto` functions accepts options, which enable dequeueing (a)synchronously and also support a mechanism to aquire and release (global) locks. By default dequeueing is performed synchronously without the usage of a lock.
+Both the `queued` and `auto` functions accepts options, which enable dequeueing (a)synchronously and also support a mechanism to acquire and release (global) locks. By default dequeueing is performed synchronously without the usage of a lock.
 
 Further, by using a `@queued.decorator`, class methods can be decorated to turn them into queues, where the same naming rules as explained above apply. However, each method name is prepended with the corresponding class name; i.e. two methods with the same name but from to differently named classes will be put into to different queues.
 
@@ -104,8 +104,8 @@ const fn = queued(function fn(
 }, {
     sync: true, // dequeue synchronously [default]
     lock: {
-        // aquire (pseudo) lock [default]
-        aquire: () => Promise.resolve(true),
+        // acquire (pseudo) lock [default]
+        acquire: () => Promise.resolve(true),
         // release (pseudo) lock [default]
         release: () => Promise.resolve(true)
     }
@@ -127,8 +127,8 @@ const qn = queued.auto(false)((
 }, {
     sync: false, // dequeue asynchronously [*not* default]
     lock: {
-        // aquire (pseudo) lock [default]
-        aquire: () => Promise.resolve(true),
+        // acquire (pseudo) lock [default]
+        acquire: () => Promise.resolve(true),
         // release (pseudo) lock [default]
         release: () => Promise.resolve(true)
     }

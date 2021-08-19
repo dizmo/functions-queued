@@ -13,7 +13,7 @@ export class Queue<T> {
     public constructor(options?: {
         auto?: boolean, name?: string, // function name (if any)
         sync?: boolean, lock?: {
-            aquire: () => Promise<boolean>,
+            acquire: () => Promise<boolean>,
             release: () => Promise<boolean>
         }
     }) {
@@ -24,7 +24,7 @@ export class Queue<T> {
         this._auto = options.auto ?? true;
         this._name = options.name ?? '';
         this._lock = options.lock ?? {
-            aquire: () => Promise.resolve(true),
+            acquire: () => Promise.resolve(true),
             release: () => Promise.resolve(true)
         }
     }
@@ -67,7 +67,7 @@ export class Queue<T> {
             this._running = false;
         }
         if (head) {
-            if (await this._lock.aquire()) {
+            if (await this._lock.acquire()) {
                 const result = await head();
                 await this._lock.release();
                 return result;
@@ -82,7 +82,7 @@ export class Queue<T> {
     private _auto = false;
     private _running = false;
     private _lock: {
-        aquire: () => Promise<boolean>,
+        acquire: () => Promise<boolean>,
         release: () => Promise<boolean>
     }
     private _queue?: Promisor<T>[];
@@ -103,7 +103,7 @@ export class Queue<T> {
  export const auto = <T>(flag: boolean) => (
     fn: Function, options?: {
         sync?: boolean, lock?: {
-            aquire: () => Promise<boolean>,
+            acquire: () => Promise<boolean>,
             release: () => Promise<boolean>
         }
     }
@@ -148,7 +148,7 @@ export class Queue<T> {
 export const queued = <T>(
     fn: Function, options?: {
         sync?: boolean, lock?: {
-            aquire: () => Promise<boolean>,
+            acquire: () => Promise<boolean>,
             release: () => Promise<boolean>
         }
     }
