@@ -5,14 +5,26 @@ import { random } from '@dizmo/functions-random';
 declare type Promisor<T = any> = (...args: any[]) => Promise<T>;
 
 /**
+ * QueueError class
+ */
+export class QueueError extends Error {}
+/**
  * The Queue returns a queue *per* (optional) class name and (optional) function
  * name i.e. two or more different functions with the **same** (class plus) name
  * will be part of the **same** queue!
  */
 export class Queue<T> {
     public constructor(options?: {
-        auto?: boolean, name?: string, // function name (if any)
-        sync?: boolean, lock?: {
+        /** flag to auto dequeue */
+        auto?: boolean,
+        /** function name (if any) */
+        name?: string,
+        /** maximum queue size */
+        size?: number,
+        /** synchronized dequeueing */
+        sync?: boolean,
+        /** lock acquisition and release */
+        lock?: {
             acquire: () => Promise<boolean>,
             release: () => Promise<boolean>
         }
@@ -20,9 +32,10 @@ export class Queue<T> {
         if (options === undefined) {
             options = {};
         }
-        this._sync = options.sync ?? true;
         this._auto = options.auto ?? true;
         this._name = options.name ?? '';
+        this._size = options.size;
+        this._sync = options.sync ?? true;
         this._lock = options.lock ?? {
             acquire: () => Promise.resolve(true),
             release: () => Promise.resolve(true)
@@ -39,6 +52,11 @@ export class Queue<T> {
                 Queue._q[name] = [];
             }
             this._queue = Queue._q[name];
+        }
+        if (typeof this._size === 'number' &&
+            this._queue.length >= this._size - 1
+        ) {
+            throw new QueueError('full');
         }
         return new Promise<T>((resolve) => {
             this._queue?.push(async () => {
@@ -73,14 +91,14 @@ export class Queue<T> {
                 return result;
             }
             this._running = false;
-            class QueueError extends Error {}
-            throw new QueueError('too busy');
+            throw new QueueError('busy');
         }
     }
-    private _name = '';
-    private _sync = true;
     private _auto = false;
+    private _name = '';
     private _running = false;
+    private _size?: number;
+    private _sync = true;
     private _lock: {
         acquire: () => Promise<boolean>,
         release: () => Promise<boolean>
@@ -96,13 +114,21 @@ export class Queue<T> {
  * i.e. whether the latter has value of `true` or `false` -- on each invocation
  * of the wrapped function.
  *
- * @param fn function to enqueue
- * @param options modify dequeueing
- * @returns a queue for the enqueued
+ * @param fn
+ *  function to enqueue
+ * @param options
+ *  dequeueing options
+ * @returns
+ *  a queue of functions
  */
  export const auto = <T>(flag: boolean) => (
     fn: Function, options?: {
-        sync?: boolean, lock?: {
+        /** maximum queue size */
+        size?: number,
+        /** synchronized dequeueing */
+        sync?: boolean,
+        /** lock acquisition and release */
+        lock?: {
             acquire: () => Promise<boolean>,
             release: () => Promise<boolean>
         }
@@ -141,13 +167,21 @@ export class Queue<T> {
  * name of the function (`fn.name`); dequeueing starts automatically -- on each
  * invocation of the wrapped function.
  *
- * @param fn function to enqueue
- * @param options modify dequeueing
- * @returns a queue for the enqueued
+ * @param fn
+ *  function to enqueue
+ * @param options
+ *  dequeueing options
+ * @returns
+ *  a queue of functions
  */
 export const queued = <T>(
     fn: Function, options?: {
-        sync?: boolean, lock?: {
+        /** maximum queue size */
+        size?: number,
+        /** synchronized dequeueing */
+        sync?: boolean,
+        /** lock acquisition and release */
+        lock?: {
             acquire: () => Promise<boolean>,
             release: () => Promise<boolean>
         }

@@ -1,7 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [off] */
 /* eslint @typescript-eslint/no-this-alias: [off] */
-import { auto } from "./queued";
-
+import { auto } from './queued';
 /**
  * Queues class methods (or functions), and then starts dequeueing them for
  * invocation in the same sequence has they have been enqueued.

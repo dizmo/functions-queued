@@ -12,7 +12,7 @@ The `queued` function creates a *separate* queue defined by the *name* of the pr
 
 The `auto` function takes a boolean flag and returns then a queue e.g. `qn` (for the provided function). If the flag is set to `true` then the queue start dequeueing immediately, and otherwise `qn.next` is required to be invoked to trigger dequeueing; by default `queued` starts dequeueing immediately.
 
-Both the `queued` and `auto` functions accepts options, which enable dequeueing (a)synchronously and also support a mechanism to acquire and release (global) locks. By default dequeueing is performed synchronously without the usage of a lock.
+Both the `queued` and `auto` functions accepts options, which enable dequeueing (a)synchronously and also support a mechanism to acquire and release (global) locks. By default dequeueing is performed synchronously without the usage of a lock. Also, an option to limit the maximum queue size can provided.
 
 Further, by using a `@queued.decorator`, class methods can be decorated to turn them into queues, where the same naming rules as explained above apply. However, each method name is prepended with the corresponding class name; i.e. two methods with the same name but from to differently named classes will be put into to different queues.
 
@@ -91,6 +91,68 @@ const qn = queued.auto(false)((
 
 ```typescript
 qn(1); qn(1, 2); qn(1, 2, 3); qn.next();
+```
+
+### Examples (functions) with queue size
+
+#### Dequeue with `Promise` (and `size=0`):
+```typescript
+const gn = queued(function gn(
+    n: number
+) {
+    return Promise.resolve(true);
+}, {
+    size: 0
+});
+```
+
+```typescript
+gn(1); // throws QueueError('full')
+```
+
+#### Dequeue with `Promise` (and `size=1`):
+```typescript
+const gn = queued(function gn(
+    n: number
+) {
+    return Promise.resolve(true);
+}, {
+    size: 1
+});
+```
+
+```typescript
+gn(1); // throws QueueError('full')
+```
+
+#### Dequeue with `Promise` (and `size=2`):
+```typescript
+const gn = queued(function gn(
+    n: number
+) {
+    return Promise.resolve(true);
+}, {
+    size: 2
+});
+```
+
+```typescript
+gn(1); gn(2); gn(3); // throws QueueError('full')
+```
+
+#### Dequeue with `Promise` (and `size=3`):
+```typescript
+const gn = queued(function gn(
+    n: number
+) {
+    return Promise.resolve(true);
+}, {
+    size: 3
+});
+```
+
+```typescript
+gn(1); gn(2); gn(3); gn(4); // throws QueueError('full')
 ```
 
 ### Examples (functions) with locking
